@@ -298,14 +298,14 @@ function renderLeetCode(lc: LeetCodeStats, y0: number): string {
 
   // E/M/H on the LEFT (PAD → emhEnd), wheel on the RIGHT of them
   const r      = 36;
-  const sw     = 14;             // outer radius = r+sw/2 = 43
+  const sw     = 7;              // outer radius = r+sw/2 = 39.5
   const emhEnd = 200;            // E/M/H area right edge
-  const cx     = emhEnd + 12 + (r + sw / 2);  // 200 + 12 + 43 = 255
+  const cx     = emhEnd + 12 + (r + sw / 2);
   const cy     = y0 + 58;
 
-  const circ       = 2 * Math.PI * r;
-  const GAP_PX     = 2;
-  const halfGapDeg = (GAP_PX / circ) * 360;
+  const circ = 2 * Math.PI * r;
+  const capDeg = (sw / circ) * 360;
+  const gapDeg = (3 / circ) * 360;
 
   const total = (lc.easy + lc.medium + lc.hard) || 1;
   const difficulties: [string, number, string][] = [
@@ -314,21 +314,21 @@ function renderLeetCode(lc: LeetCodeStats, y0: number): string {
     ["Hard",   lc.hard,   C.hard],
   ];
 
-  // Track ring
-  let wheel = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C.track}" stroke-width="${sw}"/>`;
-
-  // Colored segments
-  let cumPct = 0;
+  // Colored segments — budget arc length so gaps fit inside 360°
+  const numGaps   = difficulties.length;  // one gap after each segment (wraps to start)
+  const availDeg  = 360 - numGaps * gapDeg;
+  let startAngle  = -90 + capDeg / 2;
+  let wheel       = "";
   for (const [label, count, color] of difficulties) {
-    const pct    = count / total;
-    const arcLen = Math.max(0, pct * circ - GAP_PX);
-    const rest   = circ - arcLen;
-    const angle  = -90 + cumPct * 360 + halfGapDeg;
+    const pct      = count / total;
+    const arcDeg   = pct * availDeg;
+    const dashLen  = Math.max(0, (arcDeg / 360) * circ - sw);
+    const rest     = circ - dashLen;
     wheel += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${sw}"
-      stroke-dasharray="${arcLen.toFixed(2)} ${rest.toFixed(2)}" stroke-linecap="butt"
-      transform="rotate(${angle.toFixed(2)} ${cx} ${cy})">
+      stroke-dasharray="${dashLen.toFixed(2)} ${rest.toFixed(2)}" stroke-linecap="round"
+      transform="rotate(${startAngle.toFixed(2)} ${cx} ${cy})">
       <title>${esc(label)}: ${count}</title></circle>`;
-    cumPct += pct;
+    startAngle += arcDeg + gapDeg;
   }
 
   // Solved count in center hole
@@ -402,7 +402,7 @@ export function renderCard(data: ProfileData): string {
         --c-heat3: #26a641;
         --c-heat4: #39d353;
         --c-easy: #2ea043;
-        --c-medium: #d29922;
+        --c-medium: #e09b13;
         --c-hard: #f85149;
       }
       @media (prefers-color-scheme: light) {
@@ -419,7 +419,7 @@ export function renderCard(data: ProfileData): string {
           --c-heat3: #30a14e;
           --c-heat4: #216e39;
           --c-easy: #1a7f37;
-          --c-medium: #9a6700;
+          --c-medium: #e09b13;
           --c-hard: #cf222e;
         }
       }
