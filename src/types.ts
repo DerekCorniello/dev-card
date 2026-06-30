@@ -55,4 +55,5 @@ export interface ProfileData {
 export interface Env {
   KV: KVNamespace;
   GITHUB_TOKEN: string;
+  ENVIRONMENT?: string;
 }

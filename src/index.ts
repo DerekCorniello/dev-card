@@ -61,13 +61,18 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext): P
   }
 
   const cache = caches.default;
-  const cached = await cache.match(request);
-  if (cached) return cached;
+  const isDev = env.ENVIRONMENT === "development";
+  const forceRefresh = isDev && url.searchParams.has("refresh");
+
+  if (!forceRefresh) {
+    const cached = await cache.match(request);
+    if (cached) return cached;
+  }
 
   let svg: string;
   let isError = false;
   try {
-    const data = await getOrRefreshData(env);
+    const data = forceRefresh ? await refreshData(env) : await getOrRefreshData(env);
     svg = renderCard(data);
   } catch (err) {
     isError = true;
