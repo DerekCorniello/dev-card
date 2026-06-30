@@ -61,16 +61,13 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext): P
   }
 
   const cache = caches.default;
-  const bypassCache = url.searchParams.has("refresh");
-  if (!bypassCache) {
-    const cached = await cache.match(request);
-    if (cached) return cached;
-  }
+  const cached = await cache.match(request);
+  if (cached) return cached;
 
   let svg: string;
   let isError = false;
   try {
-    const data = bypassCache ? await refreshData(env) : await getOrRefreshData(env);
+    const data = await getOrRefreshData(env);
     svg = renderCard(data);
   } catch (err) {
     isError = true;
