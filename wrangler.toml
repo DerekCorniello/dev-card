@@ -5,11 +5,7 @@ compatibility_date = "2024-09-23"
 [triggers]
 crons = ["0 */6 * * *"]
 
-# Run `npx wrangler kv namespace create KV` and paste the id below.
-# Run `npx wrangler kv namespace create KV --preview` for the preview_id.
 [[kv_namespaces]]
 binding = "KV"
 id = "009c5be350484f448918b4ec8eea8c30"
 preview_id = "009c5be350484f448918b4ec8eea8c30"
-
-# Store your GitHub PAT: `npx wrangler secret put GITHUB_TOKEN`
