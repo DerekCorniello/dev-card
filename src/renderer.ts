@@ -7,20 +7,20 @@ const H   = 500;
 const PAD = 24;
 
 const C = {
-  bg:          "#0d1117",
-  border:      "#30363d",
-  track:       "#21262d",
-  textPrimary: "#e6edf3",
-  textMuted:   "#8b949e",
-  accent:      "#58a6ff",
-  heatmap0:    "#161b22",
-  heatmap1:    "#0e4429",
-  heatmap2:    "#006d32",
-  heatmap3:    "#26a641",
-  heatmap4:    "#39d353",
-  easy:        "#2ea043",
-  medium:      "#d29922",
-  hard:        "#f85149",
+  bg:          "var(--c-bg)",
+  border:      "var(--c-border)",
+  track:       "var(--c-track)",
+  textPrimary: "var(--c-text-primary)",
+  textMuted:   "var(--c-text-muted)",
+  accent:      "var(--c-accent)",
+  heatmap0:    "var(--c-heat0)",
+  heatmap1:    "var(--c-heat1)",
+  heatmap2:    "var(--c-heat2)",
+  heatmap3:    "var(--c-heat3)",
+  heatmap4:    "var(--c-heat4)",
+  easy:        "var(--c-easy)",
+  medium:      "var(--c-medium)",
+  hard:        "var(--c-hard)",
 } as const;
 
 const FONT        = `'JetBrains Mono', 'SFMono-Regular', Consolas, monospace`;
@@ -94,11 +94,13 @@ function statIcon(type: string, cx: number, cy: number, color: string): string {
       return `<line x1="${cx - 8}" y1="${cy}" x2="${cx - 3}" y2="${cy}" ${lc}/>`
            + `<circle cx="${cx}" cy="${cy}" r="2.5" ${fc}/>`
            + `<line x1="${cx + 3}" y1="${cy}" x2="${cx + 8}" y2="${cy}" ${lc}/>`;
-    case "prs":
-      // two nodes + diagonal connector
-      return `<circle cx="${cx - 4}" cy="${cy - 4}" r="2.5" ${lc}/>`
-           + `<circle cx="${cx + 4}" cy="${cy + 4}" r="2.5" ${fc}/>`
-           + `<line x1="${cx - 2}" y1="${cy - 2}" x2="${cx + 2}" y2="${cy + 2}" ${lc}/>`;
+    case "prs": {
+      // GitHub Octicon git-pull-request (16×16 viewBox), scaled to ~13px and centered
+      const s  = 0.8125;
+      const tx = (cx - 8 * s).toFixed(2);
+      const ty = (cy - 8 * s).toFixed(2);
+      return `<g transform="translate(${tx} ${ty}) scale(${s})"><path fill="${color}" stroke="none" d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></g>`;
+    }
     case "issues":
       // circle with info symbol
       return `<circle cx="${cx}" cy="${cy}" r="5.5" ${lc}/>`
@@ -298,7 +300,10 @@ function renderLeetCode(lc: LeetCodeStats, y0: number): string {
   const r   = 36;           // ring radius
   const sw  = 14;           // stroke-width → outer = r+sw/2 = 43, inner = r-sw/2 = 29
   const circ = 2 * Math.PI * r;
-  const GAP_PX = 3;
+  const GAP_PX     = 2;
+  // Rotating each segment forward by half the gap width centers the gap between
+  // neighbors instead of placing it entirely at the trailing edge of each arc.
+  const halfGapDeg = (GAP_PX / circ) * 360;
 
   const total = (lc.easy + lc.medium + lc.hard) || 1;
   const difficulties: [string, number, string][] = [
@@ -316,7 +321,7 @@ function renderLeetCode(lc: LeetCodeStats, y0: number): string {
     const pct    = count / total;
     const arcLen = Math.max(0, pct * circ - GAP_PX);
     const rest   = circ - arcLen;
-    const angle  = -90 + cumPct * 360;
+    const angle  = -90 + cumPct * 360 + halfGapDeg;
     wheel += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${sw}"
       stroke-dasharray="${arcLen.toFixed(2)} ${rest.toFixed(2)}" stroke-linecap="butt"
       transform="rotate(${angle.toFixed(2)} ${cx} ${cy})">
@@ -384,7 +389,43 @@ export function renderCard(data: ProfileData): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Developer card for DerekCorniello">
   <title>DerekCorniello - Developer Card</title>
   <defs>
-    <style><![CDATA[@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');]]></style>
+    <style><![CDATA[
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+      :root {
+        --c-bg: #0d1117;
+        --c-border: #30363d;
+        --c-track: #21262d;
+        --c-text-primary: #e6edf3;
+        --c-text-muted: #8b949e;
+        --c-accent: #58a6ff;
+        --c-heat0: #161b22;
+        --c-heat1: #0e4429;
+        --c-heat2: #006d32;
+        --c-heat3: #26a641;
+        --c-heat4: #39d353;
+        --c-easy: #2ea043;
+        --c-medium: #d29922;
+        --c-hard: #f85149;
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --c-bg: #ffffff;
+          --c-border: #d0d7de;
+          --c-track: #eaeef2;
+          --c-text-primary: #1f2328;
+          --c-text-muted: #57606a;
+          --c-accent: #0969da;
+          --c-heat0: #ebedf0;
+          --c-heat1: #9be9a8;
+          --c-heat2: #40c463;
+          --c-heat3: #30a14e;
+          --c-heat4: #216e39;
+          --c-easy: #1a7f37;
+          --c-medium: #9a6700;
+          --c-hard: #cf222e;
+        }
+      }
+    ]]></style>
   </defs>
   <!-- Divider with LEETCODE badge tab -->
   <line x1="${PAD}" y1="${lcDivY}" x2="${W - PAD}" y2="${lcDivY}" stroke="${C.border}" stroke-width="1"/>
