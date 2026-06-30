@@ -294,15 +294,17 @@ function renderStats(stats: GitHubStats, rank: RankResult, y0: number): string {
 // ── Section: LeetCode wheel (stroke-based) + recent submissions ────────────
 
 function renderLeetCode(lc: LeetCodeStats, y0: number): string {
-  // Wheel dimensions — stroke-based circles guarantee a perfect ring shape
-  const cx  = PAD + 58;    // 82
-  const cy  = y0 + 58;     // donut center
-  const r   = 36;           // ring radius
-  const sw  = 14;           // stroke-width → outer = r+sw/2 = 43, inner = r-sw/2 = 29
-  const circ = 2 * Math.PI * r;
+  const divX = 310;
+
+  // E/M/H on the LEFT (PAD → emhEnd), wheel on the RIGHT of them
+  const r      = 36;
+  const sw     = 14;             // outer radius = r+sw/2 = 43
+  const emhEnd = 200;            // E/M/H area right edge
+  const cx     = emhEnd + 12 + (r + sw / 2);  // 200 + 12 + 43 = 255
+  const cy     = y0 + 58;
+
+  const circ       = 2 * Math.PI * r;
   const GAP_PX     = 2;
-  // Rotating each segment forward by half the gap width centers the gap between
-  // neighbors instead of placing it entirely at the trailing edge of each arc.
   const halfGapDeg = (GAP_PX / circ) * 360;
 
   const total = (lc.easy + lc.medium + lc.hard) || 1;
@@ -315,7 +317,7 @@ function renderLeetCode(lc: LeetCodeStats, y0: number): string {
   // Track ring
   let wheel = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C.track}" stroke-width="${sw}"/>`;
 
-  // Colored segments via stroke-dasharray; each circle is rotated to its start angle
+  // Colored segments
   let cumPct = 0;
   for (const [label, count, color] of difficulties) {
     const pct    = count / total;
@@ -334,15 +336,12 @@ function renderLeetCode(lc: LeetCodeStats, y0: number): string {
   <text x="${cx}" y="${cy + 6}" text-anchor="middle" font-family="${FONT}" font-size="17" font-weight="700" fill="${C.textPrimary}">${lc.solved}</text>
   <text x="${cx}" y="${cy + 15}" text-anchor="middle" font-family="${FONT}" font-size="6" fill="${C.textMuted}">solved</text>`;
 
-  // E / M / H mini-stats to the right of the wheel, before the vertical divider
-  const statsX = cx + r + sw / 2 + 18;  // right edge of wheel + gap = 143
-  const divX   = 310;
-  const emhColW = (divX - statsX) / 3;
-
-  let diffStats = "";
+  // E / M / H on the left, 3 equal columns from PAD to emhEnd
+  const emhColW = (emhEnd - PAD) / 3;
+  let diffStats = `<text x="${PAD}" y="${y0 + 13}" font-family="${FONT}" font-size="10" fill="${C.textMuted}">LEETCODE</text>`;
   for (let i = 0; i < difficulties.length; i++) {
     const [label, count, color] = difficulties[i];
-    const tx = statsX + i * emhColW + emhColW / 2;
+    const tx = PAD + i * emhColW + emhColW / 2;
     diffStats += `
     <text x="${tx.toFixed(1)}" y="${cy - 14}" text-anchor="middle" font-family="${FONT}" font-size="9" fill="${C.textMuted}">${label.toUpperCase()}</text>
     <text x="${tx.toFixed(1)}" y="${cy + 2}" text-anchor="middle" font-family="${FONT}" font-size="14" font-weight="700" fill="${color}">${count}</text>`;
@@ -352,7 +351,7 @@ function renderLeetCode(lc: LeetCodeStats, y0: number): string {
   const divLine = `<line x1="${divX}" y1="${y0 + 6}" x2="${divX}" y2="${y0 + 110}" stroke="${C.border}" stroke-width="1"/>`;
 
   // Recent submissions (right of divider)
-  const subX = divX + 14;   // 324
+  const subX = divX + 14;
   let subLabel = `<text x="${subX}" y="${y0 + 11}" font-family="${FONT}" font-size="9" fill="${C.textMuted}">RECENT</text>`;
 
   let submissions = "";
@@ -363,7 +362,6 @@ function renderLeetCode(lc: LeetCodeStats, y0: number): string {
     const dotColor  = accepted ? C.easy : C.hard;
     const langStr   = LC_LANG[sub.lang] ?? sub.lang;
     const ago       = timeAgo(sub.timestamp);
-    // Title: reserve ~44px for lang + ~44px for time-ago on the right
     const titleW    = W - PAD - subX - 15 - 44 - 44;
     const titleText = truncate(sub.title, Math.floor(titleW / 6.4));
 
@@ -427,10 +425,7 @@ export function renderCard(data: ProfileData): string {
       }
     ]]></style>
   </defs>
-  <!-- Divider with LEETCODE badge tab -->
   <line x1="${PAD}" y1="${lcDivY}" x2="${W - PAD}" y2="${lcDivY}" stroke="${C.border}" stroke-width="1"/>
-  <rect x="${PAD}" y="${lcDivY - 7}" width="82" height="14" rx="2" fill="${C.bg}"/>
-  <text x="${PAD + 5}" y="${lcDivY + 4}" font-family="${FONT}" font-size="10" fill="${C.textMuted}">LEETCODE</text>
 
   ${renderHeader()}
   ${renderHeatmap(data.github.contributionWeeks)}
